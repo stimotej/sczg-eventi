@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
-const remotePatterns = [
-  new URL("https://www.sczg.unizg.hr/wp-content/uploads/**"),
+const remotePatterns: NonNullable<NextConfig["images"]>["remotePatterns"] = [
+  {
+    protocol: "https",
+    hostname: "www.sczg.unizg.hr",
+    pathname: "/wp-content/uploads/**",
+  },
 ];
 
 const cloudinaryHost = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
