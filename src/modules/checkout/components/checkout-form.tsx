@@ -25,10 +25,17 @@ export default function CheckoutForm({
   orderedItems,
   warehouseId,
 }: CheckoutFormProps) {
-  const resolvedInitialDate = parseDateStringToDate(cart?.items[0]?.startDate);
+  const resolvedStartDate = parseDateStringToDate(cart?.items[0]?.startDate);
+  const resolvedEndDate = parseDateStringToDate(cart?.items[0]?.endDate);
+  const resolvedInitialDateRange = resolvedStartDate
+    ? {
+        from: resolvedStartDate,
+        to: resolvedEndDate ?? resolvedStartDate,
+      }
+    : undefined;
 
   return (
-    <CheckoutProvider initialDate={resolvedInitialDate}>
+    <CheckoutProvider initialDateRange={resolvedInitialDateRange}>
       <aside className="rounded-lg border border-neutral-200 p-5 md:p-6">
         <div className="space-y-6">
           <DateStep
@@ -39,7 +46,7 @@ export default function CheckoutForm({
           />
           <PersonalDetailsStep />
           <AddressStep />
-          <PaymentStep cart={cart} />
+          <PaymentStep cart={cart} listing={listing} />
         </div>
       </aside>
     </CheckoutProvider>

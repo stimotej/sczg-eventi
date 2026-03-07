@@ -20,7 +20,7 @@ function buildGeocodeQuery(
 }
 
 export function AddressStep() {
-  const { date, address, setAddress, completedSteps, setCompletedSteps } =
+  const { dateRange, address, setAddress, completedSteps, setCompletedSteps } =
     useCheckout();
 
   const [isGeocoding, setIsGeocoding] = React.useState(false);
@@ -100,7 +100,9 @@ export function AddressStep() {
     <section
       className={cn(
         "rounded-lg border border-neutral-200 p-4 transition",
-        (!date || !completedSteps.date || !completedSteps.personalDetails) &&
+        (!dateRange?.from ||
+          !completedSteps.date ||
+          !completedSteps.personalDetails) &&
           "pointer-events-none opacity-50",
       )}
     >

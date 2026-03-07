@@ -6,7 +6,7 @@ import * as React from "react";
 
 export function PersonalDetailsStep() {
   const {
-    date,
+    dateRange,
     personalDetails,
     setPersonalDetails,
     completedSteps,
@@ -53,7 +53,8 @@ export function PersonalDetailsStep() {
     <section
       className={cn(
         "rounded-lg border border-neutral-200 p-4 transition",
-        (!date || !completedSteps.date) && "pointer-events-none opacity-50",
+        (!dateRange?.from || !completedSteps.date) &&
+          "pointer-events-none opacity-50",
       )}
     >
       <div className="flex items-center justify-between gap-3">

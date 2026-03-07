@@ -2,6 +2,7 @@
 
 import { createRentiqeOrder, deleteRentiqeOrder } from "@/lib/data/rentiqe";
 import { useCheckout } from "@/modules/checkout/context/checkout-context";
+import { formatCurrency } from "@/modules/checkout/utils/pricing";
 import {
   Elements,
   PaymentElement,
@@ -57,18 +58,10 @@ function StripePaymentForm({
   const elements = useElements();
   const [message, setMessage] = React.useState<string | null>(null);
   const [isProcessing, setIsProcessing] = React.useState(false);
-  const formattedAmount = React.useMemo(() => {
-    const normalizedCurrency = currency.toUpperCase();
-
-    try {
-      return new Intl.NumberFormat("hr-HR", {
-        style: "currency",
-        currency: normalizedCurrency,
-      }).format(amount);
-    } catch {
-      return `${amount} ${normalizedCurrency}`;
-    }
-  }, [amount, currency]);
+  const formattedAmount = React.useMemo(
+    () => formatCurrency(amount, currency),
+    [amount, currency],
+  );
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

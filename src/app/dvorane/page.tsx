@@ -1,6 +1,7 @@
 import { getRentiqeListings } from "@/lib/data/rentiqe";
 import clearHtmlFromString from "@/lib/utils/clear-html-from-string";
 import { cn } from "@/lib/utils/cn";
+import { dvoraneListingCategorySlug } from "@/lib/utils/constants";
 import getRentiqeImageUrl from "@/lib/utils/rentiqe-image-loader";
 import { buttonClassName } from "@/modules/common/components/button";
 import DisplayHTML from "@/modules/common/components/display-html";
@@ -13,7 +14,9 @@ export const metadata: Metadata = {
 };
 
 export default async function DvoranePage() {
-  const { listings } = await getRentiqeListings();
+  const { listings } = await getRentiqeListings({
+    categories: [dvoraneListingCategorySlug],
+  });
 
   return (
     <main className="max-w-6xl mx-auto min-h-screen px-4 md:px-6 lg:px-10 py-20">

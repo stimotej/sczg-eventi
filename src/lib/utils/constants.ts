@@ -12,6 +12,10 @@ export const kontaktPostId = 41391;
 
 export const dvoraneCategoryId = 338;
 export const promotivneUslugeCategoryId = 339;
+export const dvoraneListingCategorySlug =
+  "61c60a9c-0f6a-4925-8d95-2ed751ce84e5";
+export const promotivneUslugeListingCategorySlug =
+  "a78942fe-5e26-4387-81e8-39a8b323ad9a";
 
 export const mainNavigationLinks = [
   {

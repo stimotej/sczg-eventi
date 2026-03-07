@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
+import type { DateRange } from "react-day-picker";
 
 type CheckoutProviderProps = {
-  initialDate?: Date;
+  initialDateRange?: DateRange;
   children: React.ReactNode;
 };
 
@@ -33,8 +34,8 @@ export type CheckoutCompletedSteps = {
 };
 
 export type CheckoutContextValue = {
-  date: Date | undefined;
-  setDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
+  dateRange: DateRange | undefined;
+  setDateRange: React.Dispatch<React.SetStateAction<DateRange | undefined>>;
   personalDetails: CheckoutPersonalDetails;
   setPersonalDetails: React.Dispatch<
     React.SetStateAction<CheckoutPersonalDetails>
@@ -58,11 +59,11 @@ export function useCheckout() {
 }
 
 export function CheckoutProvider({
-  initialDate,
+  initialDateRange,
   children,
 }: CheckoutProviderProps) {
-  const [date, setDate] = React.useState<Date | undefined>(
-    initialDate ?? new Date(),
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
+    initialDateRange,
   );
   const [personalDetails, setPersonalDetails] =
     React.useState<CheckoutPersonalDetails>({
@@ -84,15 +85,15 @@ export function CheckoutProvider({
   });
   const [completedSteps, setCompletedSteps] =
     React.useState<CheckoutCompletedSteps>({
-      date: !!initialDate,
+      date: Boolean(initialDateRange?.from && initialDateRange?.to),
       personalDetails: false,
       address: false,
     });
 
   const contextValue = React.useMemo<CheckoutContextValue>(
     () => ({
-      date,
-      setDate,
+      dateRange,
+      setDateRange,
       personalDetails,
       setPersonalDetails,
       address,
@@ -100,7 +101,7 @@ export function CheckoutProvider({
       completedSteps,
       setCompletedSteps,
     }),
-    [date, personalDetails, address, completedSteps],
+    [dateRange, personalDetails, address, completedSteps],
   );
 
   return (

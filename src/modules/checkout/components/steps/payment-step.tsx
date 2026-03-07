@@ -1,26 +1,95 @@
 "use client";
 
 import { refreshRentiqeCartPaymentIntent } from "@/lib/data/rentiqe";
-import { RentiqeCartResponse } from "@/lib/data/rentiqe-types";
+import { RentiqeCartResponse, RentiqeListing } from "@/lib/data/rentiqe-types";
 import { cn } from "@/lib/utils/cn";
 import { StripeCheckout } from "@/modules/checkout/components/stripe/stripe-checkout";
 import { useCheckout } from "@/modules/checkout/context/checkout-context";
+import {
+  calculateRangeTotal,
+  formatCurrency,
+  getRangeTotalDays,
+} from "@/modules/checkout/utils/pricing";
 import * as React from "react";
 
 type PaymentStepProps = {
   cart: RentiqeCartResponse | null;
+  listing: RentiqeListing;
 };
 
-export function PaymentStep({ cart }: PaymentStepProps) {
-  const { date, completedSteps } = useCheckout();
+export function PaymentStep({ cart, listing }: PaymentStepProps) {
+  const { dateRange, completedSteps } = useCheckout();
   const [clientSecret, setClientSecret] = React.useState<string | null>(null);
   const [isLoadingIntent, setIsLoadingIntent] = React.useState(false);
   const [intentError, setIntentError] = React.useState<string | null>(null);
+  const hasCompleteDateRange = Boolean(dateRange?.from && dateRange?.to);
 
   const isReadyForPayment =
     completedSteps.date &&
     completedSteps.personalDetails &&
-    completedSteps.address;
+    completedSteps.address &&
+    hasCompleteDateRange;
+
+  const totalAmount = React.useMemo(() => {
+    if (typeof cart?.total === "number") {
+      return cart.total;
+    }
+
+    if (!dateRange?.from || !dateRange.to) {
+      return 0;
+    }
+
+    return calculateRangeTotal(listing.price, dateRange.from, dateRange.to);
+  }, [cart?.total, dateRange, listing.price]);
+
+  const totalDays = React.useMemo(() => {
+    if (!dateRange?.from || !dateRange.to) {
+      return 0;
+    }
+
+    return getRangeTotalDays(dateRange.from, dateRange.to);
+  }, [dateRange]);
+
+  const formattedTotal = React.useMemo(
+    () => formatCurrency(totalAmount, cart?.currency ?? "eur"),
+    [cart?.currency, totalAmount],
+  );
+  const baseRentAmount = React.useMemo(() => {
+    if (!dateRange?.from || !dateRange.to) {
+      return 0;
+    }
+
+    return calculateRangeTotal(listing.price, dateRange.from, dateRange.to);
+  }, [dateRange, listing.price]);
+  const itemsSubtotal = React.useMemo(() => {
+    if (typeof cart?.itemsTotal === "number") {
+      return cart.itemsTotal;
+    }
+
+    return baseRentAmount;
+  }, [baseRentAmount, cart?.itemsTotal]);
+  const feeAmount = React.useMemo(() => {
+    return itemsSubtotal - baseRentAmount;
+  }, [itemsSubtotal, baseRentAmount]);
+  const additionalAmount = React.useMemo(() => {
+    return totalAmount - itemsSubtotal;
+  }, [itemsSubtotal, totalAmount]);
+  const formattedBaseRent = React.useMemo(
+    () => formatCurrency(baseRentAmount, cart?.currency ?? "eur"),
+    [baseRentAmount, cart?.currency],
+  );
+  const formattedItemsSubtotal = React.useMemo(
+    () => formatCurrency(itemsSubtotal, cart?.currency ?? "eur"),
+    [cart?.currency, itemsSubtotal],
+  );
+  const formattedFee = React.useMemo(
+    () => formatCurrency(feeAmount, cart?.currency ?? "eur"),
+    [cart?.currency, feeAmount],
+  );
+  const formattedAdditional = React.useMemo(
+    () => formatCurrency(additionalAmount, cart?.currency ?? "eur"),
+    [additionalAmount, cart?.currency],
+  );
 
   React.useEffect(() => {
     let isMounted = true;
@@ -66,7 +135,7 @@ export function PaymentStep({ cart }: PaymentStepProps) {
     return () => {
       isMounted = false;
     };
-  }, [cart?.id, isReadyForPayment, date]);
+  }, [cart?.id, isReadyForPayment, dateRange?.from, dateRange?.to]);
 
   return (
     <section
@@ -83,7 +152,7 @@ export function PaymentStep({ cart }: PaymentStepProps) {
             : "Potvrdi datum, unesi podatke i adresu kako bi nastavio na plaćanje."}
         </p>
       </div>
-      {isReadyForPayment && date ? (
+      {isReadyForPayment ? (
         isLoadingIntent ? (
           <p className="text-sm text-neutral-500">Priprema plaćanja...</p>
         ) : intentError ? (
@@ -99,12 +168,37 @@ export function PaymentStep({ cart }: PaymentStepProps) {
             Došlo je do pogreške prilikom pripreme plaćanja.
           </p>
         ) : (
-          <StripeCheckout
-            clientSecret={clientSecret}
-            amount={cart?.total ?? 0}
-            currency={cart?.currency ?? "eur"}
-            cartId={cart.id}
-          />
+          <div className="space-y-4">
+            <div className="rounded-md bg-neutral-50 px-4 py-3 leading-relaxed text-sm text-neutral-700">
+              <p>
+                Osnovni najam ({totalDays} x {formatCurrency(listing.price)}):{" "}
+                <strong>{formattedBaseRent}</strong>
+              </p>
+              <p>
+                Naknada: <strong>{formattedFee}</strong>
+              </p>
+              {additionalAmount !== 0 ? (
+                <>
+                  <p>
+                    Međuzbroj stavki: <strong>{formattedItemsSubtotal}</strong>
+                  </p>
+                  <p>
+                    Dodatni troškovi: <strong>{formattedAdditional}</strong>
+                  </p>
+                </>
+              ) : null}
+              <p>
+                Ukupno ({totalDays} {totalDays === 1 ? "dan" : "dana"}):{" "}
+                <strong>{formattedTotal}</strong>
+              </p>
+            </div>
+            <StripeCheckout
+              clientSecret={clientSecret}
+              amount={totalAmount}
+              currency={cart?.currency ?? "eur"}
+              cartId={cart.id}
+            />
+          </div>
         )
       ) : null}
     </section>
