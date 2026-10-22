@@ -12,10 +12,11 @@
     "@radix-ui/react-dialog": "^1.1.15",
     "clsx": "^2.1.1",
     "isomorphic-dompurify": "^2.26.0",
-    "next": "15.5.0",
+    "next": "15.5.28",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-photo-view": "^1.2.7",
+    "sharp": "^0.35.5",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
